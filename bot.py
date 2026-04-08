@@ -2,7 +2,8 @@ import random
 import os
 from datetime import time
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters, JobQueue
+
 
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
@@ -32,10 +33,27 @@ def generate_special():
     return random.choice(specials)
 
 
+def generate_surprise():
+    surprises = [
+        f"🎁 Сюрприз! {GIRL_NAME}, помни, ты сегодня лучшая 😍",
+        f"😂 Шутка дня: Почему кошка не работает на компьютере? Потому что боится мыши!",
+        f"💌 Милый факт: {GIRL_NAME}, твоя улыбка может осветить целый день",
+        f"🌸 Просто так: {GIRL_NAME}, ты чудо!",
+        f"🐶 Представь: щенок рад тебя видеть так же, как я 🥰",
+        f"🖼️ Стикер-вдохновение: 😘💖✨"
+    ]
+    return random.choice(surprises)
+
+
 def generate_compliment():
-    if random.random() < 0.2:  # 20% шанс на специальный комплимент
+    
+    if random.random() < 0.15:
+        return generate_surprise()
+    
+    if random.random() < 0.2:
         return generate_special()
 
+   
     starts = [
         f"{GIRL_NAME}, ты",
         f"{GIRL_NAME}, знаешь, ты",
@@ -108,9 +126,29 @@ async def send_msg(context: ContextTypes.DEFAULT_TYPE):
         schedule(context)
 
 
+async def morning_message(context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=CHAT_ID,
+        text=f"Доброе утро, {GIRL_NAME} 💖\n{generate_compliment()}"
+    )
+
+async def night_message(context: ContextTypes.DEFAULT_TYPE):
+    await context.bot.send_message(
+        chat_id=CHAT_ID,
+        text=f"Спокойной ночи, {GIRL_NAME} 🌙\n{generate_compliment()}"
+    )
+
+
 app = ApplicationBuilder().token(TOKEN).build()
+
 
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+
+job_queue = app.job_queue
+job_queue.run_daily(morning_message, time(hour=8, minute=0))  # 8:00 утра
+job_queue.run_daily(night_message, time(hour=22, minute=0))   # 22:00 вечера
+
 
 app.run_polling()
