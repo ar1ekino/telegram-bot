@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, Con
 
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
-GIRL_NAME = "Таня"
+GIRL_NAME = "Танюша"
 
 auto_enabled = False
 
@@ -31,24 +31,24 @@ def keyboard():
 
 def generate_med_joke():
     return random.choice([
-        "😂 Медсестры уже не нервничают — они закалённые 😄",
-        "😂 Врач сказал отдыхать… ага, конечно 😏",
-        "😂 Если тихо — значит сейчас будет весело 😄",
-        "😂 Кофе не помогает? Значит ты настоящая медсестра ☕😅",
-        "😂 Мир держится на медсестрах 💉😄",
+        "😂 Медсестры уже не нервничают — они закалённые",
+        "😂 Врач сказал отдыхать… ага, конечно ",
+        "😂 Если тихо — значит сейчас будет весело ",
+        "😂 Кофе не помогает? Значит ты настоящая медсестра ",
+        "😂 Мир держится на медсестрах ",
     ])
 
 
 def generate_special():
     return random.choice([
         f"{GIRL_NAME}, ты лучшая 💕",
-        f"Как мне так повезло с тобой, {GIRL_NAME}? 😍",
-        f"{GIRL_NAME}, ты украла все мои мысли ❤️",
+        f"Как мне так повезло с тобой, {GIRL_NAME}? ",
+        f"{GIRL_NAME}, ты украла все мои мысли ",
     ])
 
 def generate_surprise():
     return random.choice([
-        f"🎁 Сюрприз! Ты сегодня особенно прекрасна 😍",
+        f"🎁 Сюрприз! Ты сегодня особенно прекрасна ",
         f"💌 Твоя улыбка лечит лучше лекарств",
         f"🌸 Ты чудо",
         generate_med_joke(),
@@ -56,7 +56,7 @@ def generate_surprise():
 
 def generate_nurse():
     return random.choice([
-        f"{GIRL_NAME}, ты спасаешь людей ❤️",
+        f"{GIRL_NAME}, ты спасаешь людей ",
         f"{GIRL_NAME}, ты настоящая героиня 🏥",
         f"{GIRL_NAME}, у тебя золотое сердце",
     ])
@@ -111,7 +111,7 @@ def generate_compliment():
 
     endings = [
         "и это невозможно не заметить ❤️",
-        "и от тебя невозможно оторвать взгляд 😍",
+        "и от тебя невозможно оторвать взгляд ",
         "и ты делаешь мир лучше",
         "и рядом с тобой спокойно",
         "и ты сводишь меня с ума 💖",
@@ -158,7 +158,7 @@ def smart_reply(text):
         return f"{GIRL_NAME}, вот и правильно 💖"
 
     if "привет" in text:
-        return f"Привет, {GIRL_NAME} 😍"
+        return f"Привет, {GIRL_NAME} "
 
     if "люблю" in text:
         return f"Я тебя ещё сильнее ❤️"
@@ -172,7 +172,7 @@ def smart_reply(text):
     if random.random() < 0.15:
         return random.choice([
             f"{GIRL_NAME}, думаю о тебе 💭",
-            f"Ты сейчас очень красивая 😏",
+            f"Ты сейчас очень красивая ",
         ])
 
     return None
