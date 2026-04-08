@@ -9,8 +9,9 @@ TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
 GIRL_NAME = "Танюша"
 
-auto_enabled = False
-user_state = {"tired": False}
+
+AUTO_KEY = "auto_enabled"
+TIRED_KEY = "user_tired"
 
 
 def keyboard():
@@ -23,6 +24,8 @@ def keyboard():
         ],
         resize_keyboard=True
     )
+
+
 
 
 def generate_med_joke():
@@ -118,41 +121,53 @@ def generate_compliment():
     return f"{random.choice(starts)} {random.choice(adjectives)}, {random.choice(endings)}{random.choice(extras)} {random.choice(emojis)}"
 
 
-def smart_reply(text):
+def smart_reply(text, tired):
     text = text.lower()
     if "устала" in text:
-        user_state["tired"] = True
-        return f"{GIRL_NAME}, иди ко мне… ты заслужила отдых 💖"
+        return f"{GIRL_NAME}, иди ко мне… ты заслужила отдых 💖", True
     if "отдохнула" in text:
-        user_state["tired"] = False
-        return f"{GIRL_NAME}, вот и правильно 💖"
+        return f"{GIRL_NAME}, вот и правильно 💖", False
     if "привет" in text:
-        return f"Привет, {GIRL_NAME} 😍"
+        return f"Привет, {GIRL_NAME} 😍", tired
     if "люблю" in text:
-        return f"Я тебя ещё сильнее ❤️"
+        return f"Я тебя ещё сильнее ❤️", tired
     if "грустно" in text or "плохо" in text:
-        return f"{GIRL_NAME}, я рядом 🤍"
+        return f"{GIRL_NAME}, я рядом 🤍", tired
     if "голодн" in text:
-        return f"{GIRL_NAME}, давай что-нибудь вкусненькое  Я бы предложил: {generate_snack()}"
-    if user_state["tired"] and random.random() < 0.3:
-        return f"{GIRL_NAME}, ты как сейчас? 💭"
+        return f"{GIRL_NAME}, давай что-нибудь вкусненькое 🍴 {generate_snack()}", tired
+    if tired and random.random() < 0.3:
+        return f"{GIRL_NAME}, ты как сейчас? 💭", tired
     if random.random() < 0.15:
-        return random.choice([f"{GIRL_NAME}, думаю о тебе 💭", "Ты сейчас очень красивая"])
-    return None
+        return random.choice([f"{GIRL_NAME}, думаю о тебе 💭", "Ты сейчас очень красивая"]), tired
+    return None, tired
 
 
-async def follow_up(context):
-    await asyncio.sleep(random.randint(600, 1800))  
-    if user_state["tired"]:
-        await context.bot.send_message(chat_id=CHAT_ID, text=f"{GIRL_NAME}, как ты? 💖")
+
+
+async def auto_send(bot, app):
+    while app.bot_data.get(AUTO_KEY, False):
+        interval = random.randint(60, 65)  
+        await asyncio.sleep(interval)
+        if not app.bot_data.get(AUTO_KEY, False):
+            break
+        text = random.choice([f"{GIRL_NAME}, думаю о тебе 💭", generate_compliment()])
+        try:
+            await bot.send_message(chat_id=CHAT_ID, text=text)
+        except Exception as e:
+            print(f"Ошибка при авто-сообщении: {e}")
+
+
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    context.application.bot_data[AUTO_KEY] = False
+    context.application.bot_data[TIRED_KEY] = False
     await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
 
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    global auto_enabled
     text = update.message.text
+    app_data = context.application.bot_data
 
     if text == "💌 Сейчас":
         await update.message.reply_text(generate_compliment())
@@ -161,32 +176,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif text == "😂 Шутка":
         await update.message.reply_text(generate_med_joke())
     elif text == "▶️ Авто":
-        if not auto_enabled:
-            auto_enabled = True
-            context.application.create_task(auto_send(context))  
+        if not app_data.get(AUTO_KEY, False):
+            app_data[AUTO_KEY] = True
+            asyncio.create_task(auto_send(context.bot, context.application))
         await update.message.reply_text("Авто включено 💕")
     elif text == "⏸️ Стоп":
-        auto_enabled = False
+        app_data[AUTO_KEY] = False
         await update.message.reply_text("Авто выключено")
     else:
-        reply = smart_reply(text)
+        reply, tired = smart_reply(text, app_data.get(TIRED_KEY, False))
+        app_data[TIRED_KEY] = tired
         if reply:
             await update.message.reply_text(reply)
-            if user_state["tired"]:
-                context.application.create_task(follow_up(context))  
 
 
-async def auto_send(context):
-    global auto_enabled
-    while auto_enabled:
-        await asyncio.sleep(10) 
-        if not auto_enabled:
-            break
-        if random.random() < 0.3:
-            text = random.choice([f"{GIRL_NAME}, думаю о тебе 💭", "Как ты там? 🫶"])
-        else:
-            text = generate_compliment()
-        await context.bot.send_message(chat_id=CHAT_ID, text=text)
 
 
 app = ApplicationBuilder().token(TOKEN).build()
