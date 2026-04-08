@@ -142,7 +142,7 @@ def smart_reply(text, tired):
 async def auto_send(bot, app):
     print("Авто-режим стартовал!")  
     while app.bot_data.get(AUTO_KEY, False):
-        await asyncio.sleep(random.randint(6000, 15000))  
+        await asyncio.sleep(random.randint(10, 15))  
         if not app.bot_data.get(AUTO_KEY, False):
             print("Авто-режим выключен")
             break
