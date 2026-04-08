@@ -5,8 +5,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 
 import os
 
-TOKEN = os.getenv("8694014299:AAHM322rjxllW3U1rNVVwOoZo0p2kZMZ-_c")
-CHAT_ID = int(os.getenv("453566990"))
+TOKEN = os.getenv("TOKEN")
+CHAT_ID = int(os.getenv("CHAT_ID"))
 GIRL_NAME = "Таня"
 
 auto_enabled = False
