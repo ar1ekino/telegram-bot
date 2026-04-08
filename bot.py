@@ -179,7 +179,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def auto_send(context):
     global auto_enabled
     while auto_enabled:
-        await asyncio.sleep(random.randint(72, 75))  
+        await asyncio.sleep(10) 
         if not auto_enabled:
             break
         if random.random() < 0.3:
