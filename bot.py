@@ -1,10 +1,10 @@
 import random
 import os
+import asyncio
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, ContextTypes, filters
-import asyncio
 
-
+#
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
 GIRL_NAME = "Таня"
@@ -12,83 +12,130 @@ GIRL_NAME = "Таня"
 auto_enabled = False
 
 
+user_state = {
+    "tired": False,
+}
+
+
 def keyboard():
     return ReplyKeyboardMarkup(
         [
             [KeyboardButton("💌 Сейчас")],
+            [KeyboardButton("🩺 После смены")],
+            [KeyboardButton("😂 Шутка")],
             [KeyboardButton("▶️ Авто"), KeyboardButton("⏸️ Стоп")],
         ],
-        resize_keyboard=True,
-        one_time_keyboard=False
+        resize_keyboard=True
     )
 
 
-def generate_special():
-    specials = [
-        f"{GIRL_NAME}, я просто напомню: ты лучшая 💕",
-        f"Иногда я думаю... как мне так повезло с тобой, {GIRL_NAME}? 😍",
-        f"{GIRL_NAME}, ты сегодня украла все мои мысли ❤️",
-        f"Я не знаю как, но ты каждый день становишься ещё красивее",
+def generate_med_joke():
+    jokes = [
+        "😂 Почему медсестры спокойные? Иммунитет к стрессу ",
+        "😂 Врач сказал отдыхать… медсестра такая: ага, конечно",
+        "😂 Пациент: 'мне хуже' — медсестра: 'сейчас будет интереснее' ",
+        "😂 Настоящая медсестра — это когда кофе уже не помогает ",
+        "😂 Медсестры держат мир на капельнице 💉",
+        "😂 Если смена спокойная — это подозрительно ",
     ]
-    return random.choice(specials)
+    return random.choice(jokes)
 
+
+def generate_special():
+    return random.choice([
+        f"{GIRL_NAME}, ты лучшая 💕",
+        f"Как мне так повезло с тобой, {GIRL_NAME}? 😍",
+        f"{GIRL_NAME}, ты украла все мои мысли ❤️",
+    ])
 
 def generate_surprise():
-    surprises = [
-        f"🎁 Сюрприз! {GIRL_NAME}, помни, ты сегодня лучшая 😍",
-        f"😂 Шутка дня: Почему кошка не работает на компьютере? Потому что боится мыши!",
-        f"💌 Милый факт: {GIRL_NAME}, твоя улыбка может осветить целый день",
-        f"🌸 Просто так: {GIRL_NAME}, ты чудо!",
-        f"🐶 Представь: щенок рад тебя видеть так же, как я 🥰",
-        f"🖼️ Стикер-вдохновение: 😘💖✨"
-    ]
-    return random.choice(surprises)
+    return random.choice([
+        f"🎁 Сюрприз! Ты сегодня особенно прекрасна 😍",
+        f"💌 Твоя улыбка лечит лучше лекарств",
+        f"🌸 Ты чудо",
+        generate_med_joke(),  # шутка внутри сюрприза
+    ])
+
+def generate_nurse():
+    return random.choice([
+        f"{GIRL_NAME}, ты спасаешь людей ❤️",
+        f"{GIRL_NAME}, ты настоящая героиня 🏥",
+        f"{GIRL_NAME}, у тебя золотое сердце",
+    ])
+
+def generate_support():
+    return random.choice([
+        f"{GIRL_NAME}, ты устала… ты умничка 💖",
+        f"{GIRL_NAME}, ты справляешься 💪",
+        f"{GIRL_NAME}, отдыхай 🫶",
+    ])
 
 
 def generate_compliment():
-    if random.random() < 0.15:
+    r = random.random()
+
+    if r < 0.10:
+        return generate_support()
+    elif r < 0.20:
+        return generate_nurse()
+    elif r < 0.30:
+        return generate_med_joke()
+    elif r < 0.45:
         return generate_surprise()
-    if random.random() < 0.2:
+    elif r < 0.65:
         return generate_special()
 
-    starts = [
-        f"{GIRL_NAME}, ты",
-        f"{GIRL_NAME}, знаешь, ты",
-        f"{GIRL_NAME}, мне кажется, ты",
-        f"{GIRL_NAME}, честно — ты",
-    ]
-    adjectives = [
-        "невероятно красивая",
-        "очень милая",
-        "просто волшебная",
-        "безумно притягательная",
-        "очень особенная",
-        "такая нежная",
-        "очень тёплая",
-        "просто идеальная",
-    ]
-    endings = [
-        "и это невозможно не заметить ❤️",
-        "и от тебя невозможно оторвать взгляд 😍",
-        "и ты делаешь этот мир лучше",
-        "и рядом с тобой спокойно",
-        "и ты сводишь меня с ума 💖",
-        "и это правда",
-        "и это чувствуется сразу",
-    ]
-    extra = [
-        "",
-        " Ты даже не представляешь насколько.",
-        " Серьёзно.",
-        " Каждый раз убеждаюсь в этом.",
-        " Это не комплимент — это факт.",
-    ]
+    return random.choice([
+        f"{GIRL_NAME}, ты невероятно красивая ❤️",
+        f"{GIRL_NAME}, ты делаешь мир лучше",
+        f"{GIRL_NAME}, ты просто космос 😍",
+    ])
 
-    return f"{random.choice(starts)} {random.choice(adjectives)}, {random.choice(endings)}{random.choice(extra)}"
+
+def smart_reply(text):
+    text = text.lower()
+
+    if "устала" in text:
+        user_state["tired"] = True
+        return f"{GIRL_NAME}, иди ко мне… ты заслужила отдых 💖"
+
+    if "отдохнула" in text:
+        user_state["tired"] = False
+        return f"{GIRL_NAME}, вот и правильно 💖"
+
+    if "привет" in text:
+        return f"Привет, {GIRL_NAME} 😍"
+
+    if "люблю" in text:
+        return f"Я тебя ещё сильнее ❤️"
+
+    if "грустно" in text or "плохо" in text:
+        return f"{GIRL_NAME}, я рядом 🤍"
+
+    if user_state["tired"] and random.random() < 0.3:
+        return f"{GIRL_NAME}, ты как сейчас? 💭"
+
+    if random.random() < 0.15:
+        return random.choice([
+            f"{GIRL_NAME}, думаю о тебе 💭",
+            f"Ты сейчас очень красивая 😏",
+        ])
+
+    return None
+
+
+async def follow_up(context):
+    await asyncio.sleep(random.randint(600, 1800))
+
+    if user_state["tired"]:
+        await context.bot.send_message(
+            chat_id=CHAT_ID,
+            text=f"{GIRL_NAME}, как ты? 💖"
+        )
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Привет, солнышко 💕", reply_markup=keyboard())
+    await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -97,6 +144,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if text == "💌 Сейчас":
         await update.message.reply_text(generate_compliment())
+
+    elif text == "🩺 После смены":
+        msg = generate_support() + "\n\n" + generate_nurse()
+        await update.message.reply_text(msg)
+
+    elif text == "😂 Шутка":
+        await update.message.reply_text(generate_med_joke())
 
     elif text == "▶️ Авто":
         if not auto_enabled:
@@ -108,16 +162,35 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         auto_enabled = False
         await update.message.reply_text("Авто выключено")
 
+    else:
+        reply = smart_reply(text)
+        if reply:
+            await update.message.reply_text(reply)
+
+            if user_state["tired"]:
+                asyncio.create_task(follow_up(context))
+
 
 async def auto_send(context):
     global auto_enabled
     while auto_enabled:
-        await asyncio.sleep(random.randint(7200, 15000))  # 2–4 часа
+        await asyncio.sleep(random.randint(7200, 15000))
+
         if auto_enabled:
-            await context.bot.send_message(chat_id=CHAT_ID, text=generate_compliment())
+            if random.random() < 0.3:
+                text = random.choice([
+                    f"{GIRL_NAME}, думаю о тебе 💭",
+                    f"Как ты там? 🫶",
+                ])
+            else:
+                text = generate_compliment()
+
+            await context.bot.send_message(chat_id=CHAT_ID, text=text)
 
 
 app = ApplicationBuilder().token(TOKEN).build()
+
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
 app.run_polling()
