@@ -31,11 +31,15 @@ def keyboard():
 
 def generate_med_joke():
     return random.choice([
-        "😂 Медсестры уже не нервничают — они закалённые",
+        "😂 Медсестры уже не нервничают — они закалённые ",
         "😂 Врач сказал отдыхать… ага, конечно ",
         "😂 Если тихо — значит сейчас будет весело ",
         "😂 Кофе не помогает? Значит ты настоящая медсестра ",
         "😂 Мир держится на медсестрах ",
+        "😂 Пациент сказал “болит живот”, я сказала “болит ваша фантазия”.",
+        "😂 Кофе в одной руке, шприц в другой — супергеройский стиль! ",
+        "😂 Если пациент боится укола, я боюсь его отменить — скучно же!",
+        "😂Главная цель медсестры: чтобы пациенты выжили… а врачи не заметили, что мы всё исправили сами.",
     ])
 
 
@@ -43,7 +47,7 @@ def generate_special():
     return random.choice([
         f"{GIRL_NAME}, ты лучшая 💕",
         f"Как мне так повезло с тобой, {GIRL_NAME}? ",
-        f"{GIRL_NAME}, ты украла все мои мысли ",
+        f"{GIRL_NAME}, ты украла все мои мысли ❤️",
     ])
 
 def generate_surprise():
@@ -56,7 +60,7 @@ def generate_surprise():
 
 def generate_nurse():
     return random.choice([
-        f"{GIRL_NAME}, ты спасаешь людей ",
+        f"{GIRL_NAME}, ты спасаешь людей ❤️",
         f"{GIRL_NAME}, ты настоящая героиня 🏥",
         f"{GIRL_NAME}, у тебя золотое сердце",
     ])
@@ -67,6 +71,18 @@ def generate_support():
         f"{GIRL_NAME}, ты справляешься 💪",
         f"{GIRL_NAME}, отдыхай 🫶",
     ])
+
+
+def generate_snack():
+    snacks = [
+        "Сендвич с сыром и овощами",
+        " Яблоко или груша — быстрый перекус",
+        "🍫 Шоколадка для настроения",
+        "🍌 Банан — энергия за пару минут",
+        "Салат с курицей или тунцом",
+        " Печенье и чай — уютно и вкусно",
+    ]
+    return random.choice(snacks)
 
 
 def generate_compliment():
@@ -83,7 +99,6 @@ def generate_compliment():
     elif r < 0.65:
         return generate_special()
 
-    
     starts = [
         f"{GIRL_NAME}, ты",
         f"{GIRL_NAME}, знаешь, ты",
@@ -111,7 +126,7 @@ def generate_compliment():
 
     endings = [
         "и это невозможно не заметить ❤️",
-        "и от тебя невозможно оторвать взгляд ",
+        "и от тебя невозможно оторвать взгляд 😍",
         "и ты делаешь мир лучше",
         "и рядом с тобой спокойно",
         "и ты сводишь меня с ума 💖",
@@ -135,17 +150,16 @@ def generate_compliment():
 
     emojis = ["❤️", "💖", "😍", "🥰", "✨", "💫", "😏"]
 
-  
     if random.random() < 0.1:
         return random.choice([
-            f"{GIRL_NAME}, ты лучшая ",
+            f"{GIRL_NAME}, ты лучшая ❤️",
             f"Я сейчас подумал о тебе 💭",
-            f"Ты очень красивая ",
+            f"Ты очень красивая 😍",
         ])
 
     return f"{random.choice(starts)} {random.choice(adjectives)}, {random.choice(endings)}{random.choice(extras)} {random.choice(emojis)}"
 
-
+# ======= УМНЫЕ ОТВЕТЫ =======
 def smart_reply(text):
     text = text.lower()
 
@@ -158,13 +172,16 @@ def smart_reply(text):
         return f"{GIRL_NAME}, вот и правильно 💖"
 
     if "привет" in text:
-        return f"Привет, {GIRL_NAME} "
+        return f"Привет, {GIRL_NAME} 😍"
 
     if "люблю" in text:
         return f"Я тебя ещё сильнее ❤️"
 
     if "грустно" in text or "плохо" in text:
         return f"{GIRL_NAME}, я рядом 🤍"
+
+    if "голодн" in text:
+        return f"{GIRL_NAME}, давай что-нибудь вкусненькое 😋💖 Я бы предложил: {generate_snack()}"
 
     if user_state["tired"] and random.random() < 0.3:
         return f"{GIRL_NAME}, ты как сейчас? 💭"
@@ -176,6 +193,7 @@ def smart_reply(text):
         ])
 
     return None
+
 
 async def follow_up(context):
     await asyncio.sleep(random.randint(600, 1800))
@@ -222,7 +240,6 @@ async def auto_send(context):
     global auto_enabled
     while auto_enabled:
         await asyncio.sleep(random.randint(7200, 15000))
-
         if auto_enabled:
             if random.random() < 0.3:
                 text = random.choice([
@@ -231,13 +248,10 @@ async def auto_send(context):
                 ])
             else:
                 text = generate_compliment()
-
             await context.bot.send_message(chat_id=CHAT_ID, text=text)
 
 
 app = ApplicationBuilder().token(TOKEN).build()
-
 app.add_handler(CommandHandler("start", start))
 app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
-
 app.run_polling()
