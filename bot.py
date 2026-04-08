@@ -155,6 +155,7 @@ async def auto_send(bot, app):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    print(update.message.chat_id)
     context.application.bot_data[AUTO_KEY] = False
     context.application.bot_data[TIRED_KEY] = False
     await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
