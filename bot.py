@@ -11,11 +11,44 @@ GIRL_NAME = "Таня"
 
 auto_enabled = False
 
-compliments = [
-    f"{GIRL_NAME}, ты невероятно красивая ❤️",
-    f"{GIRL_NAME}, ты делаешь мой день лучше",
-    f"{GIRL_NAME}, ты просто космос 😍",
-]
+def generate_compliment():
+    starts = [
+        f"{GIRL_NAME}, ты",
+        f"{GIRL_NAME}, знаешь, ты",
+        f"{GIRL_NAME}, мне кажется, ты",
+        f"{GIRL_NAME}, честно — ты",
+    ]
+
+    adjectives = [
+        "невероятно красивая",
+        "очень милая",
+        "просто волшебная",
+        "безумно притягательная",
+        "очень особенная",
+        "такая нежная",
+        "очень тёплая",
+        "просто идеальная",
+    ]
+
+    endings = [
+        "и это невозможно не заметить ❤️",
+        "и от тебя невозможно оторвать взгляд 😍",
+        "и ты делаешь этот мир лучше",
+        "и рядом с тобой спокойно",
+        "и ты сводишь меня с ума 💖",
+        "и это правда",
+        "и это чувствуется сразу",
+    ]
+
+    extra = [
+        "",
+        " Ты даже не представляешь насколько.",
+        " Серьёзно.",
+        " Каждый раз убеждаюсь в этом.",
+        " Это не комплимент — это факт.",
+    ]
+
+    return f"{random.choice(starts)} {random.choice(adjectives)}, {random.choice(endings)}{random.choice(extra)}"
 
 def keyboard():
     return InlineKeyboardMarkup([
@@ -33,7 +66,7 @@ async def buttons(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await query.answer()
 
     if query.data == "now":
-        await query.message.reply_text(random.choice(compliments))
+        await query.message.reply_text(generate_compliment())
 
     elif query.data == "auto_on":
         auto_enabled = True
@@ -52,7 +85,7 @@ def schedule(context):
 
 async def send_msg(context: ContextTypes.DEFAULT_TYPE):
     if auto_enabled:
-        await context.bot.send_message(chat_id=CHAT_ID, text=random.choice(compliments))
+        await context.bot.send_message(chat_id=CHAT_ID, text=generate_compliment())
         schedule(context)
 
 app = ApplicationBuilder().token(TOKEN).build()
