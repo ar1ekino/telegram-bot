@@ -140,9 +140,9 @@ def smart_reply(text, tired):
 
 
 async def auto_send(bot, app):
-    print("Авто-режим стартовал!")  # для отладки
+    print("Авто-режим стартовал!")  
     while app.bot_data.get(AUTO_KEY, False):
-        await asyncio.sleep(random.randint(10, 15))  
+        await asyncio.sleep(random.randint(6000, 15000))  
         if not app.bot_data.get(AUTO_KEY, False):
             print("Авто-режим выключен")
             break
@@ -155,7 +155,6 @@ async def auto_send(bot, app):
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    print(update.message.chat_id)
     context.application.bot_data[AUTO_KEY] = False
     context.application.bot_data[TIRED_KEY] = False
     await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
