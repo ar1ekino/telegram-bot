@@ -9,7 +9,6 @@ TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
 GIRL_NAME = "Танюша"
 
-
 AUTO_KEY = "auto_enabled"
 TIRED_KEY = "user_tired"
 
@@ -26,31 +25,29 @@ def keyboard():
     )
 
 
-
-
 def generate_med_joke():
     return random.choice([
-        "😂 Медсестры уже не нервничают — они закалённые ",
-        "😂 Врач сказал отдыхать… ага, конечно ",
-        "😂 Если тихо — значит сейчас будет весело ",
-        "😂 Кофе не помогает? Значит ты настоящая медсестра ",
-        "😂 Мир держится на медсестрах ",
+        "😂 Медсестры уже не нервничают — они закалённые",
+        "😂 Врач сказал отдыхать… ага, конечно",
+        "😂 Если тихо — значит сейчас будет весело",
+        "😂 Кофе не помогает? Значит ты настоящая медсестра",
+        "😂 Мир держится на медсестрах",
         "😂 Пациент сказал “болит живот”, я сказала “болит ваша фантазия”.",
-        "😂 Кофе в одной руке, шприц в другой — супергеройский стиль! ",
+        "😂 Кофе в одной руке, шприц в другой — супергеройский стиль!",
         "😂 Если пациент боится укола, я боюсь его отменить — скучно же!",
-        "😂Главная цель медсестры: чтобы пациенты выжили… а врачи не заметили, что мы всё исправили сами.",
+        "😂 Главная цель медсестры: чтобы пациенты выжили… а врачи не заметили, что мы всё исправили сами.",
     ])
 
 def generate_special():
     return random.choice([
         f"{GIRL_NAME}, ты лучшая 💕",
-        f"Как мне так повезло с тобой, {GIRL_NAME}? ",
+        f"Как мне так повезло с тобой, {GIRL_NAME}?",
         f"{GIRL_NAME}, ты украла все мои мысли ❤️",
     ])
 
 def generate_surprise():
     return random.choice([
-        f"🎁 Сюрприз! Ты сегодня особенно прекрасна ",
+        f"🎁 Сюрприз! Ты сегодня особенно прекрасна",
         f"💌 Твоя улыбка лечит лучше лекарств",
         f"🌸 Ты чудо",
         generate_med_joke(),
@@ -102,7 +99,7 @@ def generate_compliment():
         "какая-то нереальная", "необыкновенная", "очень ласковая",
     ]
     endings = [
-        "и это невозможно не заметить ❤️", "и от тебя невозможно оторвать взгляд ",
+        "и это невозможно не заметить ❤️", "и от тебя невозможно оторвать взгляд",
         "и ты делаешь мир лучше", "и рядом с тобой спокойно",
         "и ты сводишь меня с ума 💖", "и это чувствуется сразу",
         "и это просто факт", "и это видно в каждом твоём движении",
@@ -142,28 +139,25 @@ def smart_reply(text, tired):
     return None, tired
 
 
-
-
 async def auto_send(bot, app):
+    print("Авто-режим стартовал!")  # для отладки
     while app.bot_data.get(AUTO_KEY, False):
-        interval = random.randint(60, 65)  
-        await asyncio.sleep(interval)
+        await asyncio.sleep(random.randint(10, 15))  
         if not app.bot_data.get(AUTO_KEY, False):
+            print("Авто-режим выключен")
             break
         text = random.choice([f"{GIRL_NAME}, думаю о тебе 💭", generate_compliment()])
         try:
             await bot.send_message(chat_id=CHAT_ID, text=text)
+            print(f"Авто-сообщение отправлено: {text}")
         except Exception as e:
             print(f"Ошибка при авто-сообщении: {e}")
-
-
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.application.bot_data[AUTO_KEY] = False
     context.application.bot_data[TIRED_KEY] = False
     await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
-
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
@@ -188,8 +182,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         app_data[TIRED_KEY] = tired
         if reply:
             await update.message.reply_text(reply)
-
-
 
 
 app = ApplicationBuilder().token(TOKEN).build()
