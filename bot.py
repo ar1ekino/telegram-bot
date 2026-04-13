@@ -40,9 +40,9 @@ def generate_med_joke():
 
 def generate_special():
     return random.choice([
-        f"{GIRL_NAME}, ты лучшая 💕",
-        f"Как мне так повезло с тобой, {GIRL_NAME}?",
-        f"{GIRL_NAME}, ты украла все мои мысли ❤️",
+        f"{GIRL_NAME}, ты самая лучшая 💕",
+        f"Как же мне так повезло с тобой, {GIRL_NAME}?",
+        f"{GIRL_NAME}, you stole all my thoughts ❤️",
     ])
 
 def generate_surprise():
@@ -131,7 +131,7 @@ def smart_reply(text, tired):
         return f"Привет, {GIRL_NAME} 😍", tired
 
     if "люблю" in text:
-        return f"Я тебя ещё сильнее ❤️", tired
+        return f"И я люблю тебя , ангел мой", tired
 
   
     if "скучаю" in text:
@@ -139,7 +139,6 @@ def smart_reply(text, tired):
             f"Я тоже скучаю по тебе, {GIRL_NAME} 💖",
             f"{GIRL_NAME}, я очень скучаю 😔❤️",
             f"Скучаешь? Иди ко мне 💕",
-            f"{GIRL_NAME}, я рядом… даже когда скучаем 🤍",
         ]), tired
 
     if "грустно" in text or "плохо" in text:
@@ -187,7 +186,7 @@ async def auto_send(bot, app):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.application.bot_data[AUTO_KEY] = False
     context.application.bot_data[TIRED_KEY] = False
-    await update.message.reply_text("Я тут 💕", reply_markup=keyboard())
+    await update.message.reply_text("Yes milk💕", reply_markup=keyboard())
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
