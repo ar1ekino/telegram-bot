@@ -120,22 +120,40 @@ def generate_compliment():
 
 def smart_reply(text, tired):
     text = text.lower()
+
     if "устала" in text:
         return f"{GIRL_NAME}, иди ко мне… ты заслужила отдых 💖", True
+
     if "отдохнула" in text:
         return f"{GIRL_NAME}, вот и правильно 💖", False
+
     if "привет" in text:
         return f"Привет, {GIRL_NAME} 😍", tired
+
     if "люблю" in text:
         return f"Я тебя ещё сильнее ❤️", tired
+
+  
+    if "скучаю" in text:
+        return random.choice([
+            f"Я тоже скучаю по тебе, {GIRL_NAME} 💖",
+            f"{GIRL_NAME}, я очень скучаю 😔❤️",
+            f"Скучаешь? Иди ко мне 💕",
+            f"{GIRL_NAME}, я рядом… даже когда скучаем 🤍",
+        ]), tired
+
     if "грустно" in text or "плохо" in text:
         return f"{GIRL_NAME}, я рядом 🤍", tired
+
     if "голодн" in text:
         return f"{GIRL_NAME}, давай что-нибудь вкусненькое 🍴 {generate_snack()}", tired
+
     if tired and random.random() < 0.3:
         return f"{GIRL_NAME}, ты как сейчас? 💭", tired
+
     if random.random() < 0.15:
         return random.choice([f"{GIRL_NAME}, думаю о тебе 💭", "Ты сейчас очень красивая"]), tired
+
     return None, tired
 
 
@@ -146,7 +164,19 @@ async def auto_send(bot, app):
         if not app.bot_data.get(AUTO_KEY, False):
             print("Авто-режим выключен")
             break
-        text = random.choice([f"{GIRL_NAME}, думаю о тебе 💭", generate_compliment()])
+
+        options = [
+            generate_compliment(),
+            generate_compliment(),
+            generate_compliment(),
+            generate_compliment(),
+            generate_surprise(),
+            generate_special(),
+            f"{GIRL_NAME}, думаю о тебе 💭"
+        ]
+
+        text = random.choice(options)
+
         try:
             await bot.send_message(chat_id=CHAT_ID, text=text)
             print(f"Авто-сообщение отправлено: {text}")
