@@ -1,7 +1,7 @@
-import random
 import os
-import asyncio
+import random
 import json
+import asyncio
 
 from aiohttp import web
 
@@ -14,11 +14,10 @@ from telegram.ext import (
     filters,
 )
 
-# ===================== CONFIG =====================
+# ================= CONFIG =================
 
 TOKEN = os.getenv("TOKEN")
 CHAT_ID = int(os.getenv("CHAT_ID"))
-
 GIRL_NAME = "Танюша"
 
 AUTO_KEY = "auto_enabled"
@@ -26,21 +25,10 @@ TIRED_KEY = "user_tired"
 
 STATE_FILE = "state.json"
 
-auto_task = None
+WEBHOOK_PATH = f"/webhook/{TOKEN}"
+BASE_URL = os.getenv("RENDER_EXTERNAL_URL")  # Render сам даёт
 
-# ===================== STATE =====================
-
-def save_state(data):
-    try:
-        safe_data = {
-            AUTO_KEY: data.get(AUTO_KEY, False),
-            TIRED_KEY: data.get(TIRED_KEY, False),
-        }
-        with open(STATE_FILE, "w", encoding="utf-8") as f:
-            json.dump(safe_data, f)
-    except Exception as e:
-        print("STATE SAVE ERROR:", e)
-
+# ================= STATE =================
 
 def load_state():
     if not os.path.exists(STATE_FILE):
@@ -52,7 +40,15 @@ def load_state():
     except:
         return {AUTO_KEY: False, TIRED_KEY: False}
 
-# ===================== KEYBOARD =====================
+
+def save_state(data):
+    try:
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(data, f)
+    except:
+        pass
+
+# ================= KEYBOARD =================
 
 def keyboard():
     return ReplyKeyboardMarkup(
@@ -60,200 +56,81 @@ def keyboard():
             [KeyboardButton("💌 Сейчас")],
             [KeyboardButton("🩺 После смены")],
             [KeyboardButton("😂 Шутка")],
-            [KeyboardButton("▶️ Авто"), KeyboardButton("⏸️ Стоп")],
         ],
         resize_keyboard=True
     )
 
-# ===================== CONTENT =====================
+# ================= CONTENT =================
 
-def generate_med_joke():
+def generate_compliment():
     return random.choice([
-        "😂 Медсестры уже не нервничают — они закалённые",
-        "😂 Врач сказал отдыхать… ага, конечно",
-        "😂 Если тихо — значит сейчас будет весело",
-        "😂 Кофе не помогает? Значит ты настоящая медсестра",
-        "😂 Мир держится на медсестрах",
-    ])
-
-
-def generate_special():
-    return random.choice([
-        f"{GIRL_NAME}, ты самая лучшая 💕",
-        f"Как же мне так повезло с тобой, {GIRL_NAME}?",
-        f"{GIRL_NAME}, you stole all my thoughts ❤️",
-    ])
-
-
-def generate_surprise():
-    return random.choice([
-        "💌 Ты сейчас очень красивая",
-        "🌸 Ты чудо",
-        "💖 Я сейчас подумал о тебе",
-        generate_med_joke(),
-    ])
-
-
-def generate_nurse():
-    return random.choice([
-        f"{GIRL_NAME}, ты спасаешь людей ❤️",
-        f"{GIRL_NAME}, ты настоящая героиня 🏥",
-        f"{GIRL_NAME}, у тебя золотое сердце",
+        f"{GIRL_NAME}, ты невероятная 💖",
+        f"{GIRL_NAME}, ты очень красивая ❤️",
+        f"Я думаю о тебе 💭",
     ])
 
 
 def generate_support():
+    return f"{GIRL_NAME}, ты справляешься 💪"
+
+
+def generate_med_joke():
     return random.choice([
-        f"{GIRL_NAME}, ты устала… ты умничка 💖",
-        f"{GIRL_NAME}, ты справляешься 💪",
-        f"{GIRL_NAME}, отдыхай 🫶",
+        "😂 Медсестры не устают — они перезагружаются",
+        "😂 Если тихо — значит сейчас будет весело",
     ])
 
-
-def generate_snack():
-    return random.choice([
-        "Сендвич с сыром и овощами",
-        "🍫 Шоколадка для настроения",
-        "🍌 Банан — энергия за пару минут",
-        "Печенье и чай — уютно и вкусно",
-    ])
-
-
-def generate_compliment():
-    r = random.random()
-
-    if r < 0.15:
-        return generate_support()
-    if r < 0.30:
-        return generate_nurse()
-    if r < 0.45:
-        return generate_med_joke()
-    if r < 0.60:
-        return generate_surprise()
-    if r < 0.75:
-        return generate_special()
-
-    return (
-        f"{GIRL_NAME}, ты невероятно красивая "
-        f"и это невозможно не заметить ❤️"
-    )
-
-# ===================== SMART REPLY =====================
-
-def smart_reply(text, tired):
-    text = text.lower()
-
-    if "устала" in text:
-        return f"{GIRL_NAME}, иди ко мне… отдыхай 💖", True
-
-    if "отдохнула" in text:
-        return f"{GIRL_NAME}, вот и правильно 💖", False
-
-    if "привет" in text:
-        return f"Привет, {GIRL_NAME} 😍", tired
-
-    if "люблю" in text:
-        return "И я люблю тебя ❤️", tired
-
-    if "скучаю" in text:
-        return random.choice([
-            f"Я тоже скучаю 💖",
-            f"{GIRL_NAME}, я очень скучаю 😔❤️",
-        ]), tired
-
-    if "грустно" in text:
-        return f"{GIRL_NAME}, я рядом 🤍", tired
-
-    if "голодн" in text:
-        return f"{GIRL_NAME}, {generate_snack()}", tired
-
-    return None, tired
-
-# ===================== AUTO MODE =====================
-
-async def auto_send(bot, app):
-    print("AUTO STARTED")
-
-    while app.bot_data.get(AUTO_KEY, False):
-
-        await asyncio.sleep(random.randint(7200, 18000))
-
-        if not app.bot_data.get(AUTO_KEY, False):
-            break
-
-        text = random.choice([
-            generate_compliment(),
-            generate_special(),
-            generate_surprise(),
-            f"{GIRL_NAME}, думаю о тебе 💭",
-        ])
-
-        try:
-            await bot.send_message(chat_id=CHAT_ID, text=text)
-            print("AUTO:", text)
-        except Exception as e:
-            print("AUTO ERROR:", e)
-
-    print("AUTO STOPPED")
-
-# ===================== HANDLERS =====================
+# ================= HANDLERS =================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    context.application.bot_data[AUTO_KEY] = False
-    context.application.bot_data[TIRED_KEY] = False
-
     await update.message.reply_text(
-        "Yes milk💕",
+        "Bot online 💕",
         reply_markup=keyboard()
     )
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-
     text = update.message.text
-    app_data = context.application.bot_data
 
     if text == "💌 Сейчас":
         await update.message.reply_text(generate_compliment())
 
     elif text == "🩺 После смены":
-        await update.message.reply_text(
-            generate_support() + "\n\n" + generate_nurse()
-        )
+        await update.message.reply_text(generate_support())
 
     elif text == "😂 Шутка":
         await update.message.reply_text(generate_med_joke())
 
-    elif text == "▶️ Авто":
-        if not app_data.get(AUTO_KEY, False):
-            app_data[AUTO_KEY] = True
-            asyncio.create_task(auto_send(context.bot, context.application))
-
-        await update.message.reply_text("Авто включено 💕")
-
-    elif text == "⏸️ Стоп":
-        app_data[AUTO_KEY] = False
-        await update.message.reply_text("Авто выключено")
-
     else:
-        reply, tired = smart_reply(text, app_data.get(TIRED_KEY, False))
+        await update.message.reply_text("💭")
 
-        app_data[TIRED_KEY] = tired
 
-        if reply:
-            await update.message.reply_text(reply)
-
-# ===================== WEB (Render ping) =====================
+# ================= WEB SERVER =================
 
 async def health(request):
-    return web.Response(text="Bot is alive!")
+    return web.Response(text="OK")
 
 
-async def run_web():
-    app = web.Application()
-    app.router.add_get("/", health)
+async def telegram_webhook(request):
+    data = await request.json()
 
-    runner = web.AppRunner(app)
+    update = Update.de_json(data, request.app["bot"])
+
+    await request.app["application"].process_update(update)
+
+    return web.Response(text="OK")
+
+
+async def run_web(app):
+    web_app = web.Application()
+
+    web_app["application"] = app
+    web_app["bot"] = app.bot
+
+    web_app.router.add_get("/", health)
+    web_app.router.add_post(WEBHOOK_PATH, telegram_webhook)
+
+    runner = web.AppRunner(web_app)
     await runner.setup()
 
     port = int(os.environ.get("PORT", 10000))
@@ -263,7 +140,8 @@ async def run_web():
 
     print("WEB SERVER STARTED")
 
-# ===================== MAIN =====================
+
+# ================= MAIN =================
 
 async def main():
 
@@ -275,17 +153,23 @@ async def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    await run_web()
+    await app.initialize()
+    await app.start()
 
-    if app.bot_data.get(AUTO_KEY, False):
-        asyncio.create_task(auto_send(app.bot, app))
+    # webhook URL
+    webhook_url = f"{BASE_URL}{WEBHOOK_PATH}"
 
-    print("BOT STARTED")
+    await app.bot.set_webhook(webhook_url)
 
-    # ❗ ВАЖНО: правильный запуск PTB 20.7
-    await app.run_polling()
+    print("WEBHOOK SET:", webhook_url)
 
-# ===================== START =====================
+    await run_web(app)
+
+    print("BOT IS RUNNING")
+
+    # держим процесс живым
+    await asyncio.Event().wait()
+
 
 if __name__ == "__main__":
     asyncio.run(main())
