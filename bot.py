@@ -14,14 +14,10 @@ from telegram.ext import (
     filters,
 )
 
+# ===================== CONFIG =====================
 
 TOKEN = os.getenv("TOKEN")
-CHAT_ID = os.getenv("CHAT_ID")
-
-if not TOKEN or not CHAT_ID:
-    raise ValueError("TOKEN или CHAT_ID не заданы")
-
-CHAT_ID = int(CHAT_ID)
+CHAT_ID = int(os.getenv("CHAT_ID"))
 
 GIRL_NAME = "Танюша"
 
@@ -32,17 +28,18 @@ STATE_FILE = "state.json"
 
 auto_task = None
 
-
-
+# ===================== STATE =====================
 
 def save_state(data):
-    safe_data = {
-        AUTO_KEY: data.get(AUTO_KEY, False),
-        TIRED_KEY: data.get(TIRED_KEY, False),
-    }
-
-    with open(STATE_FILE, "w", encoding="utf-8") as f:
-        json.dump(safe_data, f)
+    try:
+        safe_data = {
+            AUTO_KEY: data.get(AUTO_KEY, False),
+            TIRED_KEY: data.get(TIRED_KEY, False),
+        }
+        with open(STATE_FILE, "w", encoding="utf-8") as f:
+            json.dump(safe_data, f)
+    except Exception as e:
+        print("STATE SAVE ERROR:", e)
 
 
 def load_state():
@@ -55,7 +52,7 @@ def load_state():
     except:
         return {AUTO_KEY: False, TIRED_KEY: False}
 
-
+# ===================== KEYBOARD =====================
 
 def keyboard():
     return ReplyKeyboardMarkup(
@@ -68,15 +65,14 @@ def keyboard():
         resize_keyboard=True
     )
 
-
-
+# ===================== CONTENT =====================
 
 def generate_med_joke():
     return random.choice([
-        "😂 Медсестры уже не нервничают",
-        "😂 Врач сказал отдыхать… ага конечно",
-        "😂 Если тихо — значит будет весело",
-        "😂 Кофе не помогает? значит ты медсестра",
+        "😂 Медсестры уже не нервничают — они закалённые",
+        "😂 Врач сказал отдыхать… ага, конечно",
+        "😂 Если тихо — значит сейчас будет весело",
+        "😂 Кофе не помогает? Значит ты настоящая медсестра",
         "😂 Мир держится на медсестрах",
     ])
 
@@ -84,8 +80,8 @@ def generate_med_joke():
 def generate_special():
     return random.choice([
         f"{GIRL_NAME}, ты самая лучшая 💕",
-        f"Как же мне повезло с тобой, {GIRL_NAME}?",
-        f"{GIRL_NAME}, ты украла мои мысли ❤️",
+        f"Как же мне так повезло с тобой, {GIRL_NAME}?",
+        f"{GIRL_NAME}, you stole all my thoughts ❤️",
     ])
 
 
@@ -93,7 +89,7 @@ def generate_surprise():
     return random.choice([
         "💌 Ты сейчас очень красивая",
         "🌸 Ты чудо",
-        "💖 Я думаю о тебе",
+        "💖 Я сейчас подумал о тебе",
         generate_med_joke(),
     ])
 
@@ -101,72 +97,81 @@ def generate_surprise():
 def generate_nurse():
     return random.choice([
         f"{GIRL_NAME}, ты спасаешь людей ❤️",
-        f"{GIRL_NAME}, ты героиня 🏥",
+        f"{GIRL_NAME}, ты настоящая героиня 🏥",
         f"{GIRL_NAME}, у тебя золотое сердце",
     ])
 
 
 def generate_support():
     return random.choice([
-        f"{GIRL_NAME}, ты устала… отдыхай 💖",
+        f"{GIRL_NAME}, ты устала… ты умничка 💖",
         f"{GIRL_NAME}, ты справляешься 💪",
-        f"{GIRL_NAME}, я рядом 🫶",
+        f"{GIRL_NAME}, отдыхай 🫶",
     ])
 
 
 def generate_snack():
     return random.choice([
-        "🍫 шоколадка",
-        "🍌 банан",
-        "🥪 сендвич",
-        "🍎 яблоко",
-        "🍵 чай",
+        "Сендвич с сыром и овощами",
+        "🍫 Шоколадка для настроения",
+        "🍌 Банан — энергия за пару минут",
+        "Печенье и чай — уютно и вкусно",
     ])
 
 
 def generate_compliment():
     r = random.random()
 
-    if r < 0.12:
+    if r < 0.15:
         return generate_support()
-    elif r < 0.24:
+    if r < 0.30:
         return generate_nurse()
-    elif r < 0.36:
+    if r < 0.45:
         return generate_med_joke()
-    elif r < 0.52:
+    if r < 0.60:
         return generate_surprise()
-    elif r < 0.72:
+    if r < 0.75:
         return generate_special()
 
-    return f"{GIRL_NAME}, ты невероятно красивая 💖"
+    return (
+        f"{GIRL_NAME}, ты невероятно красивая "
+        f"и это невозможно не заметить ❤️"
+    )
 
-
-
+# ===================== SMART REPLY =====================
 
 def smart_reply(text, tired):
     text = text.lower()
 
     if "устала" in text:
-        return f"{GIRL_NAME}, иди ко мне 💖", True
+        return f"{GIRL_NAME}, иди ко мне… отдыхай 💖", True
+
+    if "отдохнула" in text:
+        return f"{GIRL_NAME}, вот и правильно 💖", False
 
     if "привет" in text:
         return f"Привет, {GIRL_NAME} 😍", tired
 
     if "люблю" in text:
-        return "И я тебя ❤️", tired
+        return "И я люблю тебя ❤️", tired
 
     if "скучаю" in text:
-        return f"{GIRL_NAME}, я тоже скучаю 💕", tired
+        return random.choice([
+            f"Я тоже скучаю 💖",
+            f"{GIRL_NAME}, я очень скучаю 😔❤️",
+        ]), tired
+
+    if "грустно" in text:
+        return f"{GIRL_NAME}, я рядом 🤍", tired
 
     if "голодн" in text:
-        return f"{GIRL_NAME}, перекус: {generate_snack()}", tired
+        return f"{GIRL_NAME}, {generate_snack()}", tired
 
     return None, tired
 
+# ===================== AUTO MODE =====================
 
-
-
-async def auto_send(app):
+async def auto_send(bot, app):
     print("AUTO STARTED")
 
     while app.bot_data.get(AUTO_KEY, False):
@@ -184,71 +189,71 @@ async def auto_send(app):
         ])
 
         try:
-            await app.bot.send_message(chat_id=CHAT_ID, text=text)
+            await bot.send_message(chat_id=CHAT_ID, text=text)
             print("AUTO:", text)
         except Exception as e:
             print("AUTO ERROR:", e)
 
     print("AUTO STOPPED")
 
-
-
+# ===================== HANDLERS =====================
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("Yes milk💕", reply_markup=keyboard())
+    context.application.bot_data[AUTO_KEY] = False
+    context.application.bot_data[TIRED_KEY] = False
+
+    await update.message.reply_text(
+        "Yes milk💕",
+        reply_markup=keyboard()
+    )
 
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
-    global auto_task
-
     text = update.message.text
-    data = context.application.bot_data
+    app_data = context.application.bot_data
 
     if text == "💌 Сейчас":
         await update.message.reply_text(generate_compliment())
 
     elif text == "🩺 После смены":
-        await update.message.reply_text(generate_support() + "\n\n" + generate_nurse())
+        await update.message.reply_text(
+            generate_support() + "\n\n" + generate_nurse()
+        )
 
     elif text == "😂 Шутка":
         await update.message.reply_text(generate_med_joke())
 
     elif text == "▶️ Авто":
-
-        if not data.get(AUTO_KEY, False):
-            data[AUTO_KEY] = True
-            save_state(data)
-
-            if auto_task is None or auto_task.done():
-                auto_task = asyncio.create_task(auto_send(context.application))
+        if not app_data.get(AUTO_KEY, False):
+            app_data[AUTO_KEY] = True
+            asyncio.create_task(auto_send(context.bot, context.application))
 
         await update.message.reply_text("Авто включено 💕")
 
     elif text == "⏸️ Стоп":
-        data[AUTO_KEY] = False
-        save_state(data)
+        app_data[AUTO_KEY] = False
         await update.message.reply_text("Авто выключено")
 
     else:
-        reply, tired = smart_reply(text, data.get(TIRED_KEY, False))
-        data[TIRED_KEY] = tired
-        save_state(data)
+        reply, tired = smart_reply(text, app_data.get(TIRED_KEY, False))
+
+        app_data[TIRED_KEY] = tired
 
         if reply:
             await update.message.reply_text(reply)
 
-
+# ===================== WEB (Render ping) =====================
 
 async def health(request):
     return web.Response(text="Bot is alive!")
 
 
-async def run_web_server():
-    app_web = web.Application()
-    app_web.router.add_get("/", health)
+async def run_web():
+    app = web.Application()
+    app.router.add_get("/", health)
 
-    runner = web.AppRunner(app_web)
+    runner = web.AppRunner(app)
     await runner.setup()
 
     port = int(os.environ.get("PORT", 10000))
@@ -258,37 +263,29 @@ async def run_web_server():
 
     print("WEB SERVER STARTED")
 
-
-
+# ===================== MAIN =====================
 
 async def main():
-
-    global auto_task
 
     state = load_state()
 
     app = ApplicationBuilder().token(TOKEN).build()
-
     app.bot_data.update(state)
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    await run_web_server()
+    await run_web()
 
-    await app.initialize()
-    await app.start()
+    if app.bot_data.get(AUTO_KEY, False):
+        asyncio.create_task(auto_send(app.bot, app))
 
     print("BOT STARTED")
 
-    if app.bot_data.get(AUTO_KEY, False):
-        auto_task = asyncio.create_task(auto_send(app))
+    # ❗ ВАЖНО: правильный запуск PTB 20.7
+    await app.run_polling()
 
-    await app.updater.start_polling()
-
-    while True:
-        await asyncio.sleep(3600)
-
+# ===================== START =====================
 
 if __name__ == "__main__":
     asyncio.run(main())
